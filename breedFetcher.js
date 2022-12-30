@@ -1,29 +1,32 @@
 const request = require('request');
 
-// handle input from terminal
 
-const arg = process.argv.slice(2);
+const fetchBreedDescription = function(breedName, callback) {
 
-const printCatBreed = function(breedID) {
+  const breedID = breedName.slice(0, 4);
 
   const urlDynamic = 'https://api.thecatapi.com/v1/breeds/search?q=' + breedID;
 
   request(urlDynamic, (error, response, body) => {
 
-    console.log('error: ', error);
+    const data = JSON.parse(body);
+    const description = data[0].description;
 
-    try {
-      const data = JSON.parse(body);
-      const description = data[0].description;
-      console.log(description);
-
-      console.log('status code: ', response.statusCode);
-
-    } catch (error) {
-      console.log('error: breed not found');
+    if (error) {
+      callback(error, null);
+      return;
     }
+
+    if (response.statusCode !== 200) {
+      const msg = `could not retrieve breed information. ${response.statusCode}`;
+      callback(Error(msg), null);
+      return;
+    }
+
+    callback(null, description);
+
   });
 };
 
-printCatBreed(arg);
+module.exports = { fetchBreedDescription };
 
